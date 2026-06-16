@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Árbol Genealógico - Los Cubero</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
+    h1 { text-align: center; }
+
+    /* Contenedor principal del árbol */
+    #arbol {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .familia {
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin: 20px;
+      background: #fff;
+      position: relative;
+      text-align: center;
+      min-width: 250px;
+    }
+
+    .pareja {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin-bottom: 5px;
+    }
+
+    .fechas {
+      font-style: italic;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .hijos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 15px;
+      position: relative;
+    }
+
+    .hijo {
+      border: 1px solid #aaa;
+      border-radius: 6px;
+      padding: 6px 12px;
+      margin: 10px;
+      background: #f9f9f9;
+      min-width: 150px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Líneas entre padres e hijos */
+    .familia::after {c
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      width: 2px;
+      height: 20px;
+      background: #333;
+    }
+
+    .hijos::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #333;
+    }
+
+    .hijo::before {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      width: 2px;
+      height: 10px;
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>Árbol Genealógico - Los Cubero</h1>
+  <div id="arbol"></div>
+
+  <script>
+    fetch("./familia.json")
+      .then(response => response.json())
+      .then(data => {
+        const contenedor = document.getElementById("arbol");
+        const parejasMostradas = new Set();
+
+        data.forEach(familia => {
+          const miembros = familia.Pareja.split(" - ");
+          const esCubero = miembros.some(m => m.includes("Cubero"));
+          if (!esCubero) return;
+
+          const clavePareja = miembros.sort().join(" - ");
+          if (parejasMostradas.has(clavePareja)) return;
+          parejasMostradas.add(clavePareja);
+
+          const familiaDiv = document.createElement("div");
+          familiaDiv.className = "familia";
+
+          const parejaDiv = document.createElement("div");
+          parejaDiv.className = "pareja";
+          parejaDiv.textContent = familia.Pareja;
+          familiaDiv.appendChild(parejaDiv);
+
+          const fechasDiv = document.createElement("div");
+          fechasDiv.className = "fechas";
+          fechasDiv.textContent = `${familia.FechaEsposo} | ${familia.FechaEsposa}`;
+          familiaDiv.appendChild(fechasDiv);
+
+          let hijos = familia.Hijos;
+          if (typeof hijos === "string") {
+            try { hijos = JSON.parse(hijos); } catch { hijos = []; }
+          }
+          if (hijos && hijos.length > 0) {
+            const hijosDiv = document.createElement("div");
+            hijosDiv.className = "hijos";
+
+            hijos.forEach(hijo => {
+              const hijoDiv = document.createElement("div");
+              hijoDiv.className = "hijo";
+              hijoDiv.textContent = `${hijo.Nombre} (${hijo.Fechas})`;
+              hijosDiv.appendChild(hijoDiv);
+            });
+
+            familiaDiv.appendChild(hijosDiv);
+          }
+
+          contenedor.appendChild(familiaDiv);
+        });
+      })
+      .catch(err => console.error("Error cargando JSON:", err));
+  </script>
+</body>
+</html>
